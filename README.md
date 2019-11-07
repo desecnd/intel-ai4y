@@ -77,5 +77,6 @@ Osoby odpowiedzialne za pomysł, wykonanie, oraz prezentację: Ewelina Tyma, Paw
 Jak wskazaliśmy wyżej skorzystaliśmy z:
 
 Wytrenowany model sieci znajdujący się w *keypoint\_hand\_model* pobrany ze strony [learnopencv.com](https://www.learnopencv.com/hand-keypoint-detection-using-deep-learning-and-opencv/)
+
 Schemat sieci do rozpoznawania ręcznie pisanych liter alfabetu łacińskiego: [Akshay Chandra Lagandula Github](https://github.com/acl21/Alphabet_Recognition_Gestures)
 
