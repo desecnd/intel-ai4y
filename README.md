@@ -20,6 +20,7 @@ Jest to folder z gotowym wytrenowanym modelem, którego zadaniem jest znajdowani
 
 ### 4. Folder working\_on\_project 
 W Folderze znajduje się pokazowe video obrazujące jak działa program *sign\_alphabet\_recognition.py* oraz 4 zdjęcia pokazujące naszą pracę nad projektem
+![software in action](working_on_project/presentation.gif)
 
 ### 5. Skrypt sign\_alphabet\_recognition.py
 Główny skrypt który służy do rozpoznawania gestów pokazywanych przez użytkownika oraz zbierania danych treningowych. Na starcie programu użytkownik ma możliwość włączenia 'trybu kolekcji' wpisując **yes** w odpowiedzi na pytanie programu. Podając jakąkolwiek inną odpowiedź, program pozostawi tryb kolekcji wyłączony.
