@@ -19,7 +19,8 @@ Jest to baza wszystkich zgromadzonych przez nas gestów, znajduje się tam podf
 Jest to folder z gotowym wytrenowanym modelem, którego zadaniem jest znajdowanie kluczowych punktów dłoni. Na podstawie tych właśnie punktów generowany jest szkielet, który następnie wykorzystujemy do stworzenia danych treningowych. Model został pobrany ze strony [learnopencv.com](https://www.learnopencv.com/hand-keypoint-detection-using-deep-learning-and-opencv/)
 
 ### 4. Folder working\_on\_project 
-W Folderze znajduje się pokazowe video obrazujące jak działa program *sign\_alphabet\_recognition.py* oraz 4 zdjęcia pokazujące naszą pracę nad projektem
+W Folderze znajduje się pokazowe video obrazujące jak działa program *sign\_alphabet\_recognition.py* 
+
 ![software in action](working_on_project/presentation.gif)
 
 ### 5. Skrypt sign\_alphabet\_recognition.py
