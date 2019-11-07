@@ -58,3 +58,24 @@ Jeżeli 'tryb kolekcji' jest **włączony**:
 * Postaraj się odwzorować gest jak najlepiej, jeżeli model myli się co do wyświetlanej litery, spróbuj zobaczyć czy twój gest przypomina ten w folderze *examples*, (**rotacja ręki ma znaczenie**)
 * Upewnij się, że narysowany na ekranie szkielet odzwierciedla faktyczny gest, który pokazujesz, może zdarzyć się, że przez pomyłkę 1 modelu, drugi błędnie odczyta pokazywany gest
 
+### 6. Skrypt train\_model.py 
+Skrypt służący do wytrenowania modelu rozpoznawania gestów. Skrypt przegląda folder *gestures\_database* w poszukiwaniu rekordów dla każdej literki. Następnie dokonujac transformacji zdjęcia - pomniejszenia i normalizacji, zamienia zdjęcie na tablicę numpy. Dane są rozdzielane na 75% danych treningowych i 25% danych testowych. Po zakończeniu trenowania wyświetlany jest wynik naszej sieci. Udało nam się uzyskać **0.996%** dokładności na danych testowych. 
+
+#### Uruchomienie:
+Skrypt został napisany tak jak poprzedni w języku python w wersji 3.6. Potrzebujemy tych samych modułów, a uruchamiamy go poleceniem:
+> python3 *train\_model.py*
+
+Model sieci z którego korzystamy, został zainspirowany modelem rozpoznawania liter pisanych ręcznie: [źródło](https://github.com/acl21/Alphabet_Recognition_Gestures)
+
+### 7. Model gesture\_recognition\_model.h5
+Model sieci który trenujemy za pomocą skryptu *train\_model.py*. Służy do rozpoznania liter migowego polskiego alfabetu na podstawie gestów robionych przez użytkownika
+
+### 8. Autorzy:
+Osoby odpowiedzialne za pomysł, wykonanie, oraz prezentację: Ewelina Tyma, Paweł Woźniak
+
+### 9. Źródła
+Jak wskazaliśmy wyżej skorzystaliśmy z:
+
+Wytrenowany model sieci znajdujący się w *keypoint\_hand\_model* pobrany ze strony [learnopencv.com](https://www.learnopencv.com/hand-keypoint-detection-using-deep-learning-and-opencv/)
+Schemat sieci do rozpoznawania ręcznie pisanych liter alfabetu łacińskiego: [Akshay Chandra Lagandula Github](https://github.com/acl21/Alphabet_Recognition_Gestures)
+
