@@ -1,4 +1,4 @@
-# Computer Vision as life facilitation for Deaf and Hard of hearing in Poland
+# Computer Vision as life facilitation for Deaf and Hard of hearing in Poland - Intel AI 4 Youth Project
 ## [PL] Instrukcja Obługi:
 #### W folderze projektu znajdują się: 
 1. folder *examples*
