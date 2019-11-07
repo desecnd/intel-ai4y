@@ -10,7 +10,9 @@
 7. model *gesture\_recognition\_model.h5*
 
 ### 1. Folder examples
-W folderze znajdują się przykładowe zdjęcia pokazujące ułożenie ręki w języku migowym odpowiadające danej literze, oraz odpowiedni szkielet który powinien zostać odwzorowany
+W folderze znajdują się przykładowe zdjęcia pokazujące ułożenie ręki w języku migowym odpowiadające danej literze, oraz odpowiedni szkielet który powinien zostać odwzorowany, poniżej przykład dla litery t:
+
+![t.jpg](examples/t.jpg) ![t\_skeleton.jpg](examples/t_skeleton.jpg)
 
 ### 2. Folder gestures\_database
 Jest to baza wszystkich zgromadzonych przez nas gestów, znajduje się tam podfolder dla każdej litery jaką trenowaliśmy. Każda 'sesja' trenowania danej litery jest zapisana w folderze jako trzycyfrowa liczba - numer sesji. Kiedy w programie decydujemy się trenować litere dla przykładu 'a', program najpierw stworzy folder sesji. Powiedzmy że w folderze 'a' znajdują się już 3 sesje - '000', '001', '003' (002 została z jakiegoś powodu usunięta), program stworzy folder '004' a następnie trafią tam wszystkie gesty wykonane w czasie działania programu. Foldery sesji oraz pliki wewnątrz nich można bez problemu usuwać, nie spowoduje to nieprawidołego działania programu.
