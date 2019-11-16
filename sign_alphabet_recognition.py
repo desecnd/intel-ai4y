@@ -6,6 +6,7 @@ import cv2
 import sys
 import time
 import numpy as np 
+import perf
 from keras.models import load_model
 
 # --- Options for user: 
@@ -159,7 +160,10 @@ while(True):
 
 		# -- Pass blob to dnn for keypoints detection
 		net.setInput(blob)
+
+		inference_start = time.perf_counter()
 		netOutput = net.forward()
+		inference_end = time.perf_counter()
 		points = []
 
 		# -- Scan DNN output for every keypoint
@@ -237,6 +241,9 @@ while(True):
 
 		predictions += 1
 		predictedMessage += predictedLetter
+
+		avg_inference_latency = perf.calc_inference_latency(inference_start, inference_end)
+		print("AVG inference latency: %.2f ms" % avg_inference_latency)
 
 		# -- Output every sheet
 		if extendedOutput:
