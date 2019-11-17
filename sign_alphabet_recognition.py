@@ -9,6 +9,9 @@ import numpy as np
 import perf
 from keras.models import load_model
 
+from opencv_inf import OpencvInference
+from ngraph_inf import NgraphInference
+
 # --- Options for user: 
 extendedOutput = False # change to 'True' to show more hand recognition layers
 
@@ -18,9 +21,11 @@ extendedOutput = False # change to 'True' to show more hand recognition layers
 # --- based on hand image 
 # --- Model is taken from:
 # --- https://www.learnopencv.com/hand-keypoint-detection-using-deep-learning-and-opencv/
-proto = "keypoint_hand_model/pose_deploy.prototxt"
-weights = "keypoint_hand_model/pose_iter_102000.caffemodel" 
-net = cv2.dnn.readNetFromCaffe(proto, weights)
+
+# select one of the available inference engines for hand detection
+# hand_detection_engine = OpencvInference("keypoint_hand_model/pose_deploy.prototxt", "keypoint_hand_model/pose_iter_102000.caffemodel")
+hand_detection_engine = NgraphInference('keypoint_hand_model/keypoint.onnx')
+
 nPoints = 22
 requiredProbability = 0.1  
 
@@ -158,12 +163,11 @@ while(True):
 		# -- Get Blob from hand image
 		blob = cv2.dnn.blobFromImage(hand, 1.0/255 , (hand_rows, hand_cols), (0,0,0), swapRB=False, crop=False)
 
-		# -- Pass blob to dnn for keypoints detection
-		net.setInput(blob)
-
+		# -- Detect keypoints in a hand
 		inference_start = time.perf_counter()
-		netOutput = net.forward()
+		netOutput = hand_detection_engine.infer(blob)
 		inference_end = time.perf_counter()
+
 		points = []
 
 		# -- Scan DNN output for every keypoint
