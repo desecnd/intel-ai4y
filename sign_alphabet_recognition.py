@@ -6,7 +6,6 @@ import cv2
 import sys
 import time
 import numpy as np 
-import perf
 from keras.models import load_model
 
 from opencv_inf import OpencvInference
@@ -23,6 +22,7 @@ extendedOutput = False # change to 'True' to show more hand recognition layers
 # --- https://www.learnopencv.com/hand-keypoint-detection-using-deep-learning-and-opencv/
 
 # select one of the available inference engines for hand detection
+# pass True as the second argument to create an engine that calculates an average latency of inferences for this engine
 # hand_detection_engine = OpencvInference("keypoint_hand_model/pose_deploy.prototxt", "keypoint_hand_model/pose_iter_102000.caffemodel")
 hand_detection_engine = NgraphInference('keypoint_hand_model/keypoint.onnx')
 
@@ -164,9 +164,7 @@ while(True):
 		blob = cv2.dnn.blobFromImage(hand, 1.0/255 , (hand_rows, hand_cols), (0,0,0), swapRB=False, crop=False)
 
 		# -- Detect keypoints in a hand
-		inference_start = time.perf_counter()
 		netOutput = hand_detection_engine.infer(blob)
-		inference_end = time.perf_counter()
 
 		points = []
 
@@ -245,9 +243,6 @@ while(True):
 
 		predictions += 1
 		predictedMessage += predictedLetter
-
-		avg_inference_latency = perf.calc_inference_latency(inference_start, inference_end)
-		print("AVG inference latency: %.2f ms" % avg_inference_latency)
 
 		# -- Output every sheet
 		if extendedOutput:
