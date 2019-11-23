@@ -45,7 +45,7 @@ processHandle = prefix_queries.runProcess(dictionaryPath)
 # --- You can choose to collect data for 
 # --- future model compilation while using recognition tool
 collectingMode = False
-if input("Do you want to collect gestures data? (yes/no): ").replace(" ","") == 'yes':
+if input("Do you want to collect gestures data? (yes/[no]): ").replace(" ","") == 'yes':
 	collectingMode = True
 
 	# -- get letter for training
