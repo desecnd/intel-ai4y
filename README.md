@@ -80,3 +80,4 @@ Wytrenowany model sieci znajdujący się w *keypoint\_hand\_model* pobrany ze st
 
 Schemat sieci do rozpoznawania ręcznie pisanych liter alfabetu łacińskiego: [Akshay Chandra Lagandula Github](https://github.com/acl21/Alphabet_Recognition_Gestures)
 
+Słownik słów polskich do gier słownych: [SJP.PL](https://sjp.pl)
