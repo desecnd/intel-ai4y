@@ -1,4 +1,9 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <chrono>
+#include <memory>
+#include <vector>
+#include <string>
+#include <fstream>
 
 struct Node {
 	std::vector<std::shared_ptr<Node>> childs;	
@@ -19,17 +24,14 @@ struct Trie{
 		std::ifstream dictionary(name);
 	
 		if (!dictionary.good()) {
-			std::cout << "Error, cannot open file " << name << '\n';
+			std::cerr << "Error, cannot open file " << name << '\n';
 			return;
 		}
 		
-		std::cout << "Adding words started\n";
-
 		std::string word;
 		while (dictionary >> word) {
 			this->addWord(word);
 		}
-		std::cout << "Adding words finished\n";
 	}
 	
 	void addWord(const std::string & word) {
@@ -105,31 +107,48 @@ struct Trie{
 	}
 } trie;
 
-int main() {
+int main(int argc, char ** argv) {
 	std::ios::sync_with_stdio(false); 
+	size_t nOfWords	= 5;
+	std::string dictionaryName = "";	
 	
-	auto start = std::chrono::steady_clock::now();
-	trie.loadFromFile("polish_dictionary.txt");
-	auto end = std::chrono::steady_clock::now();
+	if (argc == 2) {
+		dictionaryName = std::string(argv[1]);   
+	}
+	else if (argc == 3) {
+		dictionaryName = std::string(argv[1]);
+		nOfWords = std::atoi(argv[2]); 
+	}
+	else  {
+		std::cerr << "Usage: program_name dictionary_path n_of_searched_words\n";
+		return 1;
+	}
 	
-	std::cout << "Loading time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " milliseconds\n";
 
+	// auto start = std::chrono::steady_clock::now();
+	trie.loadFromFile(dictionaryName);
+
+	// auto end = std::chrono::steady_clock::now();
+	// std::cout << "Loading time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " milliseconds\n";
 	// trie.printTrie(trie.root);
 	
 	std::string prefix;
-	while (1) {
-		std::cout << "Enter word prefix: ";
+	while (true) {
+		// auto start = std::chrono::steady_clock::now();
+
 		std::cin >> prefix;	
-		
-		auto start = std::chrono::steady_clock::now();
-		std::vector<std::string> predictions { trie.prefixSearch(prefix, 5) };
-		auto end = std::chrono::steady_clock::now();
-		std::cout << "Query time: " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << " microseconds\n";
-	
-		int i = 1;
+		std::vector<std::string> predictions { trie.prefixSearch(prefix, nOfWords) };
+
+		std::string predictedWords = "";
 		for ( std::string pred : predictions ) {
-			std::cout << i++ << ". " << pred << '\n';
+			predictedWords += pred + " ";
 		}
+
+		std::cout << predictedWords << '\n';
+		std::cout.flush();
+
+		//auto end = std::chrono::steady_clock::now();
+		// std::cout << "Query time: " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << " microseconds\n";
 	
 	}
 			
