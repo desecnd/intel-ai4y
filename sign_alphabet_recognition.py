@@ -7,12 +7,16 @@ import sys
 import time
 import numpy as np 
 from keras.models import load_model
+from subprocess import Popen
 
 from opencv_inf import OpencvInference
 from ngraph_inf import NgraphInference
 
 from train_model import training_rows, training_cols
 import hand_processing
+import handle_prediction
+
+serverHandle = handle_prediction.runServer("dictionaries/tickets.txt")
 
 # --- Collecting Data for base mode
 # --- You can choose to collect data for 
@@ -66,6 +70,7 @@ predictions = 0
 dumpedRecords = 0
 predictedMessage = "Press 's' to take hand snapshot"
 recordingON = False
+wordPredictions = []
 
 # --- Start webcam video 
 while(True):
@@ -88,13 +93,53 @@ while(True):
 	cv2.imshow('video', frame)
 
 	# -- Get next user input
-	userChoice = cv2.waitKey(1)
+	userChoice = chr(cv2.waitKey(1) & 255)
+
+	# -- If user pressed 'r' he enters (leaves)
+	# -- recording mode in which every (current) frame
+	# -- is scanned for keypoints then dumped as database record  
+	if userChoice == 'r':
+		if recordingON: 
+			print("User pressed 'r' - Stopping recording mode,")	
+			recordingON = False	
+		else:
+			print("User pressed 'r' - Started recording mode")
+			recordingON = True
+
+	# -- if user pressed 'q' leave main loop
+	elif userChoice == 'q':
+		print ("User pressed 'q', thanks for using our software, see you next time")
+		break
+
+	# -- if user pressed space, add space to predicted message
+	elif userChoice == ' ':
+		print("User pressed ' ' - Adding space to predicted message")
+		predictedMessage += ' '							
+
+	# -- if user pressed 'c', last character in message is cleaned     
+	elif userChoice == 'x': 
+		print("User pressed 'x' - erasing last message letter")
+		if predictions > 0 and len(predictedMessage) > 0:
+			predictedMessage = predictedMessage[:-1]
+
+	# -- if user pressed 'x', erase whole message
+	elif userChoice == 'c':
+		print("User pressed 'c' - cleaning whole message")
+		predictedMessage = ""
+
+	elif userChoice > '0' and userChoice <= str(len(wordPredictions)) and predictions > 0:
+		print("User pressed '1-" + str(len(wordPredictions)) +  "' predicting word")
+		index = int(userChoice) - 1
+
+		words = predictedMessage.split()[:-1]
+		words.append(wordPredictions[index]+" ")
+		predictedMessage = ' '.join(words)
 
 	# -- RECOGNITION PHASE
 	# -- if current mode is recording, or 
 	# -- user has choosen option 's' (screenshot)
 	# -- its first taken webcam frame
-	if recordingON or ('s' == chr(userChoice & 255)):
+	if recordingON or userChoice == 's':
 		if predictions == 0:
 			predictedMessage =	""
 	
@@ -112,46 +157,19 @@ while(True):
 		
 		cv2.imshow('Letter Prediction', handSnapshot)
 
-	# -- if user pressed 'ESC' leave main loop
-	if userChoice == 27:
-		print ("User pressed 'ESC', thanks for using our software, see you next time")
-		break
+		lastPrefix = predictedMessage.split()[-1]
+		wordPredictions = handle_prediction.queryServer(serverHandle, lastPrefix)
+		print(wordPredictions)
 
 	# -- If selected mode is collecting data 
 	# -- we can press 'd' (dump) to write current translated gesture
 	# -- to file as data for future model compilation   
-	if collectingMode and (recordingON or 'd' == chr(userChoice & 255)):
+	if collectingMode and (recordingON or userChoice == 'd'):
 		newRecord = "record" + str(dumpedRecords).zfill(4)
 		cv2.imwrite(path + newRecord + ".jpg", dataoutTranslated)
 		dumpedRecords += 1
 		print("User pressed 'd' - Dumped new", letter, "letter gesture database record ", newRecord, "to: ", path)
 
-	# -- If user pressed 'r' he enters (leaves)
-	# -- recording mode in which every (current) frame
-	# -- is scanned for keypoints then dumped as database record  
-	if 'r' == chr(userChoice & 255):
-		if recordingON: 
-			print("User pressed 'r' - Stopping recording mode,")	
-			recordingON = False	
-		else:
-			print("User pressed 'r' - Started recording mode")
-			recordingON = True
-
-	# -- if user pressed space, add space to predicted message
-	if ' ' == chr(userChoice & 255):
-		print("User pressed ' ' - Adding space to predicted message")
-		predictedMessage += ' '							
-
-	# -- if user pressed 'c', last character in message is cleaned     
-	if 'x' == chr(userChoice & 255):
-		print("User pressed 'x' - erasing last message letter")
-		if predictions > 0 and len(predictedMessage) > 0:
-			predictedMessage = predictedMessage[:-1]
-
-	# -- if user pressed 'x', erase whole message
-	if 'c' == chr(userChoice & 255):
-		print("User pressed 'c' - cleaning whole message")
-		predictedMessage = ""
 
 	# -- Measure time taken for 1 frame processing
 	e = time.time()
@@ -163,9 +181,11 @@ while(True):
 	framesToRead = int(timeSpent / timePerFrame)
 	for i in range(framesToRead):
 		ret, frame = cap.read()
-	
+
 	iteration += 1
+
 
 # --- Close all windows and exit script
 cap.release()
 cv2.destroyAllWindows()
+handle_prediction.closeServer(serverHandle)

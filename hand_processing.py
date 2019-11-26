@@ -81,9 +81,10 @@ def recenterHandKeypoints(points, img_rows, img_cols):
 	return centeredPoints
 
 
-def rescaleHandGesture(image):
+def rescaleHandGesture(recenteredGesture):
 	# -- Not made yet
-	return image
+	rescaledGesture = np.copy(recenteredGesture)
+	return rescaledGesture
 
 
 def processSnapshot(hand):
@@ -125,9 +126,10 @@ def processSnapshot(hand):
 	drawSkeleton(skeleton, points)
 	drawSkeleton(rawCentered, centeredPoints, drawGesture=True)  
 
+	rawRescaled = rescaleHandGesture(rawCentered)
 
 	# -- Extract training data from translated hand skeleton
-	inputData = imageIntoData(rawCentered, resize=True)
+	inputData = imageIntoData(rawRescaled, resize=True)
 	# -- Predict current gesture skeleton, and print this prediction with given probability 
 	res = model.predict(inputData)[0]
 	y = np.argmax(res)
