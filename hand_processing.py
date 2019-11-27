@@ -59,8 +59,9 @@ def drawSkeleton(image, keypoints, drawGesture=False):
 def getCenteredKeypoints(points, imgRows, imgCols):
 	# -- From points we take only which we have found
 	foundPoints = [ p for p in points if p ]
-	if not len(foundPoints):
-		foundPoints.append([0,0])
+
+	if len(foundPoints) < 2:
+		return [ p for p in points ]
 
 	minRow = imgRows + 1 
 	maxRow = -1 
@@ -83,8 +84,9 @@ def getCenteredKeypoints(points, imgRows, imgCols):
 def getTransformedKeypoints(points, imgRows, imgCols):
 	# -- Not made yet
 	foundPoints = [ p for p in points if p ]
-	if not len(foundPoints):
-		foundPoints.append([0,0])
+
+	if len(foundPoints) < 2:
+		return [p for p in points]
 
 	minRow = imgRows + 1 
 	maxRow = -1 
@@ -169,30 +171,3 @@ def processSnapshot(hand):
 	cv2.imshow('Hand Gesture', handGesture)
 
 	return (predictedLetter, res[y])  
-
-
-if __name__ == '__main__':
-	hand = cv2.imread('example.jpg', 0) 		
-	hand_rows, hand_cols = hand.shape[:2]
-
-	gesturePoints =[(172, 227), (204, 196), (235, 163), (243, 131), (251, 107), (203, 131), (212, 91), (219, 67), (219, 43), (179, 131), (187, 83), (187, 52), (187, 28), (155, 132), (163, 91), (156, 67), (156, 36), (132, 140), (131, 108), (131, 91), (131, 68), None]
-
-	centeredPoints = getCenteredKeypoints(gesturePoints, hand_rows, hand_cols) 
-
-	raw = np.zeros((hand_rows, hand_cols, 1))
-	raw[:,:,:] = 255
-	
-	raw2 = np.copy(raw)
-	raw3 = np.copy(raw)
-
-	drawSkeleton(raw, gesturePoints, drawGesture=True)
-	drawSkeleton(raw2, centeredPoints, drawGesture=True)
-
-	transformedPoints = getTransformedKeypoints(centeredPoints, hand_rows, hand_cols) 
-	drawSkeleton(raw3, transformedPoints, drawGesture=True)
-
-	cv2.imshow('raw', raw)	
-	cv2.imshow('raw2', raw2)	
-	cv2.imshow('raw3', raw3)	
-	cv2.waitKey(0)
-	cv2.destroyAllWindows()
