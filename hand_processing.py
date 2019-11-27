@@ -56,50 +56,79 @@ def drawSkeleton(image, keypoints, drawGesture=False):
 				cv2.circle(image, keypoints[keyA], 5, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
 				cv2.circle(image, keypoints[keyB], 5, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
 
-def recenterHandKeypoints(points, img_rows, img_cols):
+def getCenteredKeypoints(points, imgRows, imgCols):
 	# -- From points we take only which we have found
 	foundPoints = [ p for p in points if p ]
 	if not len(foundPoints):
 		foundPoints.append([0,0])
 
-	# -- Calculate Centroid of hand keypoints
-	xCoordSum, yCoordSum = 0, 0
-	for p in foundPoints:
-		xCoordSum += p[0]
-		yCoordSum += p[1]
+	minRow = imgRows + 1 
+	maxRow = -1 
+	minCol = imgCols + 1 
+	maxCol = -1 
 
-	centroid = [xCoordSum // len(foundPoints), yCoordSum // len(foundPoints)]
+	for x,y in foundPoints:
+		minRow = min(minRow, y)
+		maxRow = max(maxRow, y)
+		minCol = min(minCol, x)
+		maxCol = max(maxCol, x)
 
-	# -- Calculate Translation Vector, which if we add to every point, we will translate
-	# -- our hand skeleton such that its centroid will land on middle of hand area
-	# -- A -> B = [B.x - A.x, B.y - A.y]
-	centerVector = [img_cols // 2 - centroid[0], img_rows // 2 - centroid[1]]
+	centerBoxRow = minRow + (maxRow - minRow)//2
+	centerBoxCol = minCol + (maxCol - minCol)//2
+	centerVector = (imgCols//2 - centerBoxCol, imgRows//2 - centerBoxRow)
 
-	# -- Get centered point entry for every keypoint index
 	centeredPoints  =  [ (p[0] + centerVector[0], p[1] + centerVector[1]) if p else None for p in points ]
-
 	return centeredPoints
 
-
-def rescaleHandGesture(recenteredGesture):
+def getTransformedKeypoints(points, imgRows, imgCols):
 	# -- Not made yet
-	rescaledGesture = np.copy(recenteredGesture)
-	return rescaledGesture
+	foundPoints = [ p for p in points if p ]
+	if not len(foundPoints):
+		foundPoints.append([0,0])
+
+	minRow = imgRows + 1 
+	maxRow = -1 
+	minCol = imgCols + 1 
+	maxCol = -1 
+
+	for x,y in foundPoints:
+		minRow = min(minRow, y)
+		maxRow = max(maxRow, y)
+		minCol = min(minCol, x)
+		maxCol = max(maxCol, x)
+
+	boxRows = maxRow - minRow 
+	boxCols = maxCol - minCol
+	
+	minRowDist = min(minRow, imgRows - maxRow) 
+	minColDist = min(minCol, imgCols - maxCol)
+	
+	border = 5
+
+	if minRowDist < minColDist:
+		scalar = (boxRows + 2*(minRowDist - border)) / boxRows 
+	else: 
+		scalar = (boxCols + 2*(minColDist - border)) / boxCols 
+
+	centerRow = imgRows // 2
+	centerCol = imgCols // 2
+	
+	transformedPoints  =  [ (centerCol + int(scalar*(p[0] - centerCol)), centerRow + int(scalar*(p[1] - centerRow))) if p else None for p in points ]
+	return transformedPoints
 
 
 def processSnapshot(hand):
 	# -- Copy current hand sector
 	skeleton = np.copy(hand)
 
-	hand_rows, hand_cols, = hand.shape[:2]
+	handRows, handCols, = hand.shape[:2]
 
 	# -- Blank canvas for drawing gestures
-	dataoutRaw = np.zeros((hand_rows, hand_cols, 1))
-	dataoutRaw[:,:,:] = 255
-	rawCentered = np.copy(dataoutRaw)
+	whiteClean = np.zeros((handRows, handCols, 1))
+	whiteClean[:,:,:] = 255
 
 	# -- Get Blob from hand image
-	blob = cv2.dnn.blobFromImage(hand, 1.0/255 , (hand_rows, hand_cols), (0,0,0), swapRB=False, crop=False)
+	blob = cv2.dnn.blobFromImage(hand, 1.0/255 , (handRows, handCols), (0,0,0), swapRB=False, crop=False)
 
 	# -- Detect keypoints in a hand
 	netOutput = hand_detection_engine.infer(blob)
@@ -109,7 +138,7 @@ def processSnapshot(hand):
 	for keypointID in range(nPoints):
 		# -- Get probability map for current keypoint
 		probabilityMap = netOutput[0, keypointID, :, :]
-		probabilityMap = cv2.resize(probabilityMap, (hand_rows, hand_cols))
+		probabilityMap = cv2.resize(probabilityMap, (handRows, handCols))
 
 		# -- Find most probable coords for current keypoint
 		mapMinProbability, mapMaxProbability, mapMinPoint, mapMaxPoint = cv2.minMaxLoc(probabilityMap)
@@ -121,21 +150,49 @@ def processSnapshot(hand):
 		else:
 			points.append(None)
 
-	centeredPoints = recenterHandKeypoints(points, hand_rows, hand_cols)
+	centeredPoints = getCenteredKeypoints(points, handRows, handCols)
+	transformedPoints = getTransformedKeypoints(centeredPoints, handRows, handCols)
+
+	handGesture = np.copy(whiteClean)
 
 	drawSkeleton(skeleton, points)
-	drawSkeleton(rawCentered, centeredPoints, drawGesture=True)  
-
-	rawRescaled = rescaleHandGesture(rawCentered)
+	drawSkeleton(handGesture, transformedPoints, drawGesture=True)  
 
 	# -- Extract training data from translated hand skeleton
-	inputData = imageIntoData(rawRescaled, resize=True)
+	inputData = imageIntoData(handGesture, resize=True)
 	# -- Predict current gesture skeleton, and print this prediction with given probability 
 	res = model.predict(inputData)[0]
 	y = np.argmax(res)
 	predictedLetter = alphabet[y]
 
 	cv2.imshow('Skeleton on hand', skeleton)
-	# cv2.imshow('Raw Centered', rawCentered)
+	cv2.imshow('Hand Gesture', handGesture)
 
 	return (predictedLetter, res[y])  
+
+
+if __name__ == '__main__':
+	hand = cv2.imread('example.jpg', 0) 		
+	hand_rows, hand_cols = hand.shape[:2]
+
+	gesturePoints =[(172, 227), (204, 196), (235, 163), (243, 131), (251, 107), (203, 131), (212, 91), (219, 67), (219, 43), (179, 131), (187, 83), (187, 52), (187, 28), (155, 132), (163, 91), (156, 67), (156, 36), (132, 140), (131, 108), (131, 91), (131, 68), None]
+
+	centeredPoints = getCenteredKeypoints(gesturePoints, hand_rows, hand_cols) 
+
+	raw = np.zeros((hand_rows, hand_cols, 1))
+	raw[:,:,:] = 255
+	
+	raw2 = np.copy(raw)
+	raw3 = np.copy(raw)
+
+	drawSkeleton(raw, gesturePoints, drawGesture=True)
+	drawSkeleton(raw2, centeredPoints, drawGesture=True)
+
+	transformedPoints = getTransformedKeypoints(centeredPoints, hand_rows, hand_cols) 
+	drawSkeleton(raw3, transformedPoints, drawGesture=True)
+
+	cv2.imshow('raw', raw)	
+	cv2.imshow('raw2', raw2)	
+	cv2.imshow('raw3', raw3)	
+	cv2.waitKey(0)
+	cv2.destroyAllWindows()
