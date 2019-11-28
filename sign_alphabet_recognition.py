@@ -6,6 +6,7 @@ import cv2
 import sys
 import time
 import numpy as np 
+import argparse
 from keras.models import load_model
 from subprocess import Popen
 
@@ -16,7 +17,29 @@ from train_model import training_rows, training_cols
 import hand_processing
 import handle_prediction
 
-serverHandle = handle_prediction.runServer("dictionaries/tickets.txt")
+def parseArguments():
+	parser = argparse.ArgumentParser(description="Sign alphabet recognition main script", usage = """
+		program has to be run with --dictionary flag, which is path to file with keywords for words prediction	
+	""")
+	parser.add_argument("--dictionary", required=False, help="path to dictionary file")
+	return parser.parse_args()
+
+def checkDictionaryPath(dictionaryPath):
+	try:
+		f = open(dictionaryPath)
+	except IOError:
+		print("\nDictionary file: ", dictionaryPath, " does not exist, try --help flag for more information\n")
+	finally:				
+		f.close()
+	
+args = parseArguments()
+dictionaryPath = "dictionaries/default.txt"
+if args.dictionary:
+	dictionaryPath = args.dictionary
+
+checkDictionaryPath(dictionaryPath)
+
+serverHandle = handle_prediction.runServer(dictionaryPath)
 
 # --- Collecting Data for base mode
 # --- You can choose to collect data for 
