@@ -119,7 +119,7 @@ def getTransformedKeypoints(points, imgRows, imgCols):
 	return transformedPoints
 
 
-def processSnapshot(hand):
+def drawHandGesture(hand):
 	# -- Copy current hand sector
 	skeleton = np.copy(hand)
 
@@ -160,14 +160,15 @@ def processSnapshot(hand):
 	drawSkeleton(skeleton, points)
 	drawSkeleton(handGesture, transformedPoints, drawGesture=True)  
 
+	return (skeleton, handGesture)
+
+
+def predictGesture(handGesture):
 	# -- Extract training data from translated hand skeleton
 	inputData = imageIntoData(handGesture, resize=True)
 	# -- Predict current gesture skeleton, and print this prediction with given probability 
 	res = model.predict(inputData)[0]
 	y = np.argmax(res)
 	predictedLetter = alphabet[y]
-
-	cv2.imshow('Skeleton on hand', skeleton)
-	cv2.imshow('Hand Gesture', handGesture)
 
 	return (predictedLetter, res[y])  

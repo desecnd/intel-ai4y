@@ -13,9 +13,9 @@ from subprocess import Popen
 from opencv_inf import OpencvInference
 from ngraph_inf import NgraphInference
 
-from train_model import training_rows, training_cols
+import train_model
 import hand_processing
-import handle_prediction
+import prefix_queries
 
 def parseArguments():
 	parser = argparse.ArgumentParser(description="Sign alphabet recognition main script", usage = """
@@ -39,7 +39,7 @@ if args.dictionary:
 
 checkDictionaryPath(dictionaryPath)
 
-serverHandle = handle_prediction.runServer(dictionaryPath)
+processHandle = prefix_queries.runProcess(dictionaryPath)
 
 # --- Collecting Data for base mode
 # --- You can choose to collect data for 
@@ -50,10 +50,10 @@ if input("Do you want to collect gestures data? (yes/no): ").replace(" ","") == 
 
 	# -- get letter for training
 	letter = input('Choose letter which gestures you want to collect: ')
-	while not (len(letter) == 1 and (letter in alphabet)):
+	while not (len(letter) == 1 and (letter in train_model.alphabet)):
 		letter = input('Something gone wrong, choose again: ')	
 
-	path = hand_processing.createNewLetterSession(letter)
+	path = train_model.createNewLetterSession(letter)
 
 # --- Set resolution and select webcam  
 cap = cv2.VideoCapture(0)
@@ -67,8 +67,8 @@ if not cap.isOpened():
 
 # --- Set hand area parameters
 
-hand_rows = training_rows * 10
-hand_cols = training_cols * 10
+hand_rows = train_model.training_rows * 10
+hand_cols = train_model.training_cols * 10
 
 # --- UpperLeft BottomRight corner coords for hand frame
 ulx = 20
@@ -167,7 +167,9 @@ while(True):
 			predictedMessage =	""
 	
 		handSnapshot = np.copy(hand)
-		predictedLetter, prob = hand_processing.processSnapshot(hand)  
+		skeleton, handGesture = hand_processing.drawHandGesture(hand)
+
+		predictedLetter, prob = hand_processing.predictGesture(handGesture)  
 		
 		predictionMessage = "{} - {:3}% sure".format(predictedLetter, int(prob * 100))
 		
@@ -179,17 +181,19 @@ while(True):
 		predictedMessage += predictedLetter
 		
 		cv2.imshow('Letter Prediction', handSnapshot)
+		cv2.imshow('Skeleton on hand', skeleton)
+		cv2.imshow('Hand Gesture', handGesture)
 
 		lastPrefix = predictedMessage.split()[-1]
-		wordPredictions = handle_prediction.queryServer(serverHandle, lastPrefix)
+		wordPredictions = prefix_queries.queryProcess(processHandle, lastPrefix)
 		print(wordPredictions)
 
 	# -- If selected mode is collecting data 
 	# -- we can press 'd' (dump) to write current translated gesture
 	# -- to file as data for future model compilation   
-	if collectingMode and (recordingON or userChoice == 'd'):
+	if collectingMode and predictions > 0 and (recordingON or userChoice == 'd'):
 		newRecord = "record" + str(dumpedRecords).zfill(4)
-		cv2.imwrite(path + newRecord + ".jpg", dataoutTranslated)
+		cv2.imwrite(path + newRecord + ".jpg", handGesture)
 		dumpedRecords += 1
 		print("User pressed 'd' - Dumped new", letter, "letter gesture database record ", newRecord, "to: ", path)
 
@@ -211,4 +215,4 @@ while(True):
 # --- Close all windows and exit script
 cap.release()
 cv2.destroyAllWindows()
-handle_prediction.closeServer(serverHandle)
+prefix_queries.closeProcess(processHandle)
