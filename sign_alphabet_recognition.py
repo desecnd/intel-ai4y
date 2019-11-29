@@ -93,7 +93,7 @@ predictions = 0
 dumpedRecords = 0
 predictedMessage = "Press 's' to take hand snapshot"
 recordingON = False
-wordPredictions = []
+wordSuggestions = []
 
 # --- Start webcam video 
 while(True):
@@ -109,7 +109,7 @@ while(True):
 
 	# -- Show last prediction
 	cv2.rectangle(frame, (0,0), (frame.shape[1], 40), (0,0,0), cv2.FILLED)
-	cv2.putText(frame, predictedMessage, (20, 25),  cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2, 1)
+	cv2.putText(frame, predictedMessage[-25:], (20, 25),  cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2, 1)
 
 
 	# -- Show hand area and user's webcam view
@@ -150,12 +150,12 @@ while(True):
 		print("User pressed 'c' - cleaning whole message")
 		predictedMessage = ""
 
-	elif userChoice > '0' and userChoice <= str(len(wordPredictions)) and predictions > 0:
-		print("User pressed '1-" + str(len(wordPredictions)) +  "' predicting word")
+	elif userChoice > '0' and userChoice <= str(len(wordSuggestions)) and predictions > 0:
+		print("User pressed '1-" + str(len(wordSuggestions)) +  "' predicting word")
 		index = int(userChoice) - 1
 
 		words = predictedMessage.split()[:-1]
-		words.append(wordPredictions[index]+" ")
+		words.append(wordSuggestions[index]+" ")
 		predictedMessage = ' '.join(words)
 
 	# -- RECOGNITION PHASE
@@ -180,13 +180,19 @@ while(True):
 		predictions += 1
 		predictedMessage += predictedLetter
 		
+		suggestions = np.zeros(hand.shape)
+		cv2.putText(suggestions, "Suggestions:", (20, 25),  cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2, 1)
+		
+		lastPrefix = predictedMessage.split()[-1]
+		wordSuggestions = prefix_queries.queryProcess(processHandle, lastPrefix)
+		
+		for i in range(1, len(wordSuggestions) + 1):
+			cv2.putText(suggestions, str(i)+". "+wordSuggestions[i - 1], (20, 45 * i + 25),  cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2, 1)
+
 		cv2.imshow('Letter Prediction', handSnapshot)
 		cv2.imshow('Skeleton on hand', skeleton)
 		cv2.imshow('Hand Gesture', handGesture)
-
-		lastPrefix = predictedMessage.split()[-1]
-		wordPredictions = prefix_queries.queryProcess(processHandle, lastPrefix)
-		print(wordPredictions)
+		cv2.imshow('Word Suggestions', suggestions)
 
 	# -- If selected mode is collecting data 
 	# -- we can press 'd' (dump) to write current translated gesture
