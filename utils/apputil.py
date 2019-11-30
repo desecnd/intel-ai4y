@@ -15,5 +15,8 @@ def openWindows(cols, rows):
     cv2.moveWindow('Word Suggestions', 1200, 450)
 
 def append_word(currentMessage, word):
-    last_word_in_message = currentMessage.split()[:-1]
-    return ""
+    words_in_message = currentMessage.split()
+    
+    words_in_message.append(word)
+
+    return ' '.join(words_in_message) + ' '
