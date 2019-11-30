@@ -14,3 +14,19 @@ def test_append_word_to_word():
     
     expected_message = current_message + word_to_append + " "
     assert(new_message == expected_message)
+
+def test_autocomplete_last_word():
+    current_message = "my test mes"
+    word_to_append = "message"
+    new_message = apputil.append_word(current_message, word_to_append)
+
+    expected_message = "my test message "
+    assert(new_message == expected_message)
+
+def test_dont_autocomplete_last_word():
+    current_message = "my test message"
+    word_to_append = "message"
+    new_message = apputil.append_word(current_message, word_to_append)
+
+    expected_message = "my test message message "
+    assert(new_message == expected_message)
