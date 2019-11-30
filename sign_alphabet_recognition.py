@@ -95,6 +95,17 @@ predictedMessage = "Press 's' to take hand snapshot"
 recordingON = False
 wordSuggestions = []
 
+cv2.imshow('video', np.zeros((100, 100)))
+cv2.imshow('Hand Gesture', np.zeros((hand_cols, hand_rows)))
+cv2.imshow('Skeleton on hand', np.zeros((hand_cols, hand_rows)))
+cv2.imshow('Letter Prediction', np.zeros((hand_cols, hand_rows)))
+cv2.imshow('Word Suggestions', np.zeros((hand_cols, hand_rows)))
+cv2.moveWindow('video', 500, 125)
+cv2.moveWindow('Hand Gesture', 0, 0)
+cv2.moveWindow('Skeleton on hand', 0, 450)
+cv2.moveWindow('Letter Prediction', 1200, 0)
+cv2.moveWindow('Word Suggestions', 1200, 450)
+
 # --- Start webcam video 
 while(True):
 	# -- Start time for frame time measure
