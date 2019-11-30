@@ -1,6 +1,6 @@
 import onnx
 import time
-from perf import LatencyCalc
+from utils.perf import LatencyCalc
 import ngraph as ng
 from ngraph_onnx.onnx_importer.importer import import_onnx_model
 
