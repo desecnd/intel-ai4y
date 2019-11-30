@@ -16,6 +16,7 @@ from ngraph_inf import NgraphInference
 import train_model
 import hand_processing
 import prefix_queries
+import apputil
 
 def parseArguments():
 	parser = argparse.ArgumentParser(description="Sign alphabet recognition main script", usage = """
@@ -95,16 +96,7 @@ predictedMessage = "Press 's' to take hand snapshot"
 recordingON = False
 wordSuggestions = []
 
-cv2.imshow('video', np.zeros((100, 100)))
-cv2.imshow('Hand Gesture', np.zeros((hand_cols, hand_rows)))
-cv2.imshow('Skeleton on hand', np.zeros((hand_cols, hand_rows)))
-cv2.imshow('Letter Prediction', np.zeros((hand_cols, hand_rows)))
-cv2.imshow('Word Suggestions', np.zeros((hand_cols, hand_rows)))
-cv2.moveWindow('video', 500, 125)
-cv2.moveWindow('Hand Gesture', 0, 0)
-cv2.moveWindow('Skeleton on hand', 0, 450)
-cv2.moveWindow('Letter Prediction', 1200, 0)
-cv2.moveWindow('Word Suggestions', 1200, 450)
+apputil.openWindows(hand_cols, hand_rows)
 
 # --- Start webcam video 
 while(True):
