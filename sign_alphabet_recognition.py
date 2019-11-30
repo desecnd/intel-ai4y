@@ -157,9 +157,7 @@ while(True):
 		print("User pressed '1-" + str(len(wordSuggestions)) +  "' predicting word")
 		index = int(userChoice) - 1
 
-		words = predictedMessage.split()[:-1]
-		words.append(wordSuggestions[index]+" ")
-		predictedMessage = ' '.join(words)
+		predictedMessage = apputil.append_word(predictedMessage, wordSuggestions[index])
 
 	# -- RECOGNITION PHASE
 	# -- if current mode is recording, or 
