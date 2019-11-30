@@ -16,7 +16,7 @@ from ngraph_inf import NgraphInference
 import train_model
 import hand_processing
 import prefix_queries
-import apputil
+from utils import apputil
 
 def parseArguments():
 	parser = argparse.ArgumentParser(description="Sign alphabet recognition main script", usage = """

@@ -13,3 +13,7 @@ def openWindows(cols, rows):
     cv2.moveWindow('Skeleton on hand', 0, 450)
     cv2.moveWindow('Letter Prediction', 1200, 0)
     cv2.moveWindow('Word Suggestions', 1200, 450)
+
+def append_word(currentMessage, word):
+    last_word_in_message = currentMessage.split()[:-1]
+    return ""
