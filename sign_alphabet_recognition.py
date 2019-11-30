@@ -10,9 +10,6 @@ import argparse
 from keras.models import load_model
 from subprocess import Popen
 
-from opencv_inf import OpencvInference
-from ngraph_inf import NgraphInference
-
 import train_model
 import hand_processing
 import prefix_queries
