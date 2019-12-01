@@ -6,6 +6,8 @@ import time
 from threading import Thread, Event
 from concurrent.futures import ThreadPoolExecutor, Future
 
+from src.predictor import Predictor
+
 class Config:
     def __init__(self):
         self.training_rows = 28
@@ -75,13 +77,10 @@ class Renderer:
         for i in range(frames_to_discard):
             ret, frame = self.cap.read()
 
-class Predictor:
-    def __init__(self):
-        pass
-
-    def predict(self, hand):
-        time.sleep(1)
-        return 'a'
+    def draw_hand_frame(self, frame):
+        cv2.rectangle(frame, (self.config.ulx, self.config.uly), 
+                             (self.config.brx, self.config.bry), 
+                             (0, 0, 255), 2)
 
 class Program(Thread):
     def __init__(self, stop_event, config):
@@ -93,6 +92,8 @@ class Program(Thread):
         self.executor = ThreadPoolExecutor(max_workers=4)
         self.prediction_future = Future()
         self.prediction_future.set_result(None)
+
+        self.message = ""
 
         Thread.__init__(self)
     
@@ -112,6 +113,8 @@ class Program(Thread):
             loop_start = time.time()
 
             frame = self.renderer.grab_full_frame()
+            self.renderer.draw_hand_frame(frame)
+
             if self.prediction_future.done():
                 # get the previous gesture prediction and process it
                 char = self.prediction_future.result()
