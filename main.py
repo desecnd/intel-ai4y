@@ -25,8 +25,6 @@ class Renderer:
     def __init__(self, config):
         self.config = config
 
-        self.open_windows()
-        
         self.cap = cv2.VideoCapture(0)
         self.cap.set(3, config.video_width)
         self.cap.set(4, config.video_height)
@@ -34,6 +32,8 @@ class Renderer:
             raise "Could not open video device"
 
         self.calc_tpf(20)
+
+        self.open_windows()
 
     def render(self, images):
         for win, img in images.items():
@@ -49,8 +49,8 @@ class Renderer:
         return hand
 
     def open_windows(self):
-        blank_img = numpy.zeros((100, 100))
-        self.render({'video': blank_img,
+        blank_img = numpy.zeros((self.config.hand_rows, self.config.hand_cols))
+        self.render({'video': numpy.zeros((self.config.video_height, self.config.video_width)),
                      'Hand Gesture': blank_img,
                      'Skeleton on hand': blank_img,
                      'Letter Prediction': blank_img,
@@ -90,23 +90,34 @@ class Program(Thread):
         self.character_predictor = Predictor()
         self.renderer = Renderer(config)
 
-        self.executor = ThreadPoolExecutor(max_workers=2)
+        self.executor = ThreadPoolExecutor(max_workers=4)
         self.prediction_future = Future()
         self.prediction_future.set_result(None)
 
         Thread.__init__(self)
+    
+    def predict_from_gesture(self, frame):
+        # render the current gesture that will be used for the next prediction
+        hand = self.renderer.extract_hand(frame)
+        self.renderer.render({'Hand Gesture': hand})
 
+        # submit the hand extracted from the current frame for prediction
+        self.prediction_future = self.executor.submit(self.character_predictor.predict, hand)
+
+    def process_predicted_character(self, character):
+        print("Predicted char: ", character)
+    
     def run(self):
         while not stop_event.is_set():
             loop_start = time.time()
 
             frame = self.renderer.grab_full_frame()
             if self.prediction_future.done():
-                hand = self.renderer.extract_hand(frame)
-                self.renderer.render({'Hand Gesture': hand})
+                # get the previous gesture prediction and process it
                 char = self.prediction_future.result()
-                print("Predicted char: ", char)
-                self.prediction_future = self.executor.submit(self.character_predictor.predict, hand)
+                self.process_predicted_character(char)
+
+                self.predict_from_gesture(frame)
 
             self.renderer.render({'video': frame})
 
