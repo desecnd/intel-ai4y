@@ -14,6 +14,8 @@ import train_model
 import hand_processing
 import prefix_queries
 from utils import apputil
+from utils.async_inference import InferenceThread
+from threading import Event
 
 def parseArguments():
 	parser = argparse.ArgumentParser(description="Sign alphabet recognition main script", usage = """
@@ -95,6 +97,10 @@ wordSuggestions = []
 
 apputil.openWindows(hand_cols, hand_rows)
 
+quit_event = Event()
+inference_thread = InferenceThread(quit_event)
+inference_thread.start()
+
 # --- Start webcam video 
 while(True):
 	# -- Start time for frame time measure
@@ -132,6 +138,11 @@ while(True):
 	# -- if user pressed 'q' leave main loop
 	elif userChoice == 'q':
 		print ("User pressed 'q', thanks for using our software, see you next time")
+		
+		# the quit_event will make all dependent threads stop their execution before the app exits
+		quit_event.set()
+		# now we have to wait(join) for all threads to stop before we exit
+		inference_thread.join()
 		break
 
 	# -- if user pressed space, add space to predicted message
