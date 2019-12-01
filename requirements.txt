@@ -1,0 +1,7 @@
+keras
+tensorflow
+opencv-python
+sklearn
+numpy
+ngraph-core
+ngraph-onnx
