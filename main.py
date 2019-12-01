@@ -4,7 +4,7 @@ import numpy
 import asyncio
 import time
 from threading import Thread, Event
-
+from concurrent.futures import ThreadPoolExecutor, Future
 
 class Config:
     def __init__(self):
@@ -14,6 +14,10 @@ class Config:
         self.hand_cols = self.training_cols * 10
         self.video_width = 640
         self.video_height = 480
+        self.ulx = 20
+        self.uly = 150 
+        self.brx = self.ulx + self.hand_cols
+        self.bry = self.uly + self.hand_rows
         self.enabled_windows = ('video', 'Letter Prediction', 'Word Suggestions',
                                 'Hand Gesture', 'Skeleton on hand')
 
@@ -29,10 +33,20 @@ class Renderer:
         if not self.cap.isOpened():
             raise "Could not open video device"
 
+        self.calc_tpf(20)
+
     def render(self, images):
         for win, img in images.items():
             if win in self.config.enabled_windows:
                 cv2.imshow(win, img)
+
+    def grab_full_frame(self):
+        ret, frame = self.cap.read()
+        return frame
+
+    def extract_hand(self, frame):
+        hand = frame[self.config.uly:self.config.bry, self.config.ulx:self.config.brx,:]
+        return hand
 
     def open_windows(self):
         blank_img = numpy.zeros((100, 100))
@@ -48,14 +62,26 @@ class Renderer:
         cv2.moveWindow('Letter Prediction', 1200, 0)
         cv2.moveWindow('Word Suggestions', 1200, 450)
 
+    def calc_tpf(self, test_frames):
+        s = time.time()
+        for i in range(test_frames):
+            ret, frame = self.cap.read()
+        e = time.time()
+        self.tpf = (e - s) / test_frames
+
+    def discard_frames(self, elapsed_time):
+        frames_to_discard = int(elapsed_time / self.tpf)
+        # print("Frames to discard:", frames_to_discard)
+        for i in range(frames_to_discard):
+            ret, frame = self.cap.read()
 
 class Predictor:
     def __init__(self):
         pass
 
-    def predict(self):
+    def predict(self, hand):
         time.sleep(1)
-        return numpy.random.randn(100, 100)
+        return 'a'
 
 class Program(Thread):
     def __init__(self, stop_event, config):
@@ -63,12 +89,29 @@ class Program(Thread):
         self.stop_event = stop_event
         self.character_predictor = Predictor()
         self.renderer = Renderer(config)
+
+        self.executor = ThreadPoolExecutor(max_workers=2)
+        self.prediction_future = Future()
+        self.prediction_future.set_result(None)
+
         Thread.__init__(self)
 
     def run(self):
         while not stop_event.is_set():
-            img = self.character_predictor.predict()
-            self.renderer.render({'video': img})
+            loop_start = time.time()
+
+            frame = self.renderer.grab_full_frame()
+            if self.prediction_future.done():
+                hand = self.renderer.extract_hand(frame)
+                self.renderer.render({'Hand Gesture': hand})
+                char = self.prediction_future.result()
+                print("Predicted char: ", char)
+                self.prediction_future = self.executor.submit(self.character_predictor.predict, hand)
+
+            self.renderer.render({'video': frame})
+
+            loop_end = time.time()
+            self.renderer.discard_frames(loop_end - loop_start)
 
 if __name__ == "__main__":
     stop_event = Event()
