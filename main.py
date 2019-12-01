@@ -14,12 +14,12 @@ class Program(Thread):
     def __init__(self, stop_event, config):
         self.config = config
         self.stop_event = stop_event
-        self.character_predictor = Predictor()
+        self.character_predictor = Predictor(config)
         self.renderer = Renderer(config)
 
-        self.executor = ThreadPoolExecutor(max_workers=4)
+        self.executor = ThreadPoolExecutor(max_workers=1)
         self.prediction_future = Future()
-        self.prediction_future.set_result(None)
+        self.prediction_future.set_result((None, None, None, None))
 
         self.message = ""
 
@@ -45,7 +45,7 @@ class Program(Thread):
 
             if self.prediction_future.done():
                 # get the previous gesture prediction and process it
-                char = self.prediction_future.result()
+                char, prob, skeleton, handGesture = self.prediction_future.result()
                 self.process_predicted_character(char)
 
                 self.predict_from_gesture(frame)
