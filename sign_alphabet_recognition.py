@@ -10,12 +10,10 @@ import argparse
 from keras.models import load_model
 from subprocess import Popen
 
-from opencv_inf import OpencvInference
-from ngraph_inf import NgraphInference
-
 import train_model
 import hand_processing
 import prefix_queries
+from utils import apputil
 
 def parseArguments():
 	parser = argparse.ArgumentParser(description="Sign alphabet recognition main script", usage = """
@@ -45,7 +43,7 @@ processHandle = prefix_queries.runProcess(dictionaryPath)
 # --- You can choose to collect data for 
 # --- future model compilation while using recognition tool
 collectingMode = False
-if input("Do you want to collect gestures data? (yes/no): ").replace(" ","") == 'yes':
+if input("Do you want to collect gestures data? (yes/[no]): ").replace(" ","") == 'yes':
 	collectingMode = True
 
 	# -- get letter for training
@@ -94,6 +92,8 @@ dumpedRecords = 0
 predictedMessage = "Press 's' to take hand snapshot"
 recordingON = False
 wordSuggestions = []
+
+apputil.openWindows(hand_cols, hand_rows)
 
 # --- Start webcam video 
 while(True):
@@ -154,9 +154,7 @@ while(True):
 		print("User pressed '1-" + str(len(wordSuggestions)) +  "' predicting word")
 		index = int(userChoice) - 1
 
-		words = predictedMessage.split()[:-1]
-		words.append(wordSuggestions[index]+" ")
-		predictedMessage = ' '.join(words)
+		predictedMessage = apputil.append_word(predictedMessage, wordSuggestions[index])
 
 	# -- RECOGNITION PHASE
 	# -- if current mode is recording, or 
