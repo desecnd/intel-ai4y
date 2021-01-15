@@ -6,7 +6,7 @@ import numpy as np
 from keras.models import load_model
 
 from opencv_inf import OpencvInference
-from ngraph_inf import NgraphInference
+# from ngraph_inf import NgraphInference
 
 from train_model import alphabet, imageIntoData
 
@@ -18,8 +18,8 @@ from train_model import alphabet, imageIntoData
 # --- https://www.learnopencv.com/hand-keypoint-detection-using-deep-learning-and-opencv/
 # select one of the available inference engines for hand detection
 # pass True as the second argument to create an engine that calculates an average latency of inferences for this engine
-# hand_detection_engine = OpencvInference("keypoint_hand_model/pose_deploy.prototxt", "keypoint_hand_model/pose_iter_102000.caffemodel")
-hand_detection_engine = NgraphInference('keypoint_hand_model/keypoint.onnx', True)
+hand_detection_engine = OpencvInference("keypoint_hand_model/pose_deploy.prototxt", "keypoint_hand_model/pose_iter_102000.caffemodel")
+# hand_detection_engine = NgraphInference('keypoint_hand_model/keypoint.onnx', True)
 nPoints = 22
 requiredProbability = 0.1  
 
